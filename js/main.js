@@ -79,19 +79,31 @@ Promise.all([
     subDistrictsData = subDistricts;
     riskPointsData = riskPoints;
 
-    console.log(subDistrictsData);
-
     // Process and display subdistricts layer
     subDistrictsLayer = L.geoJSON(subDistrictsData, {
         style: subDistrictStyle,
         onEachFeature: subDistrictPopup
     }).addTo(map);
 
-    // Process and display risk points layer
+    // Process and display risk points layer with clustering
+    const markers = L.markerClusterGroup({
+        chunkedLoading: true,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        animateAddingMarkers: true
+    });
+
     riskPointsLayer = L.geoJSON(riskPointsData, {
-        pointToLayer: (feature, latlng) => L.circleMarker(latlng, riskPointStyle(feature)),
-        onEachFeature: riskPointPopup
-    }).addTo(map);
+        pointToLayer: (feature, latlng) => {
+            const marker = L.circleMarker(latlng, riskPointStyle(feature));
+            marker.bindPopup(riskPointPopup(feature));
+            return marker;
+        }
+    });
+
+    markers.addLayer(riskPointsLayer);
+    map.addLayer(markers);
 
     // Initialize filters
     initializeFilters();
@@ -150,12 +162,29 @@ function applyFilters() {
         return statusMatch && districtMatch;
     });
 
-    riskPointsLayer.clearLayers();
-    L.geoJSON(filteredData, {
-        pointToLayer: (feature, latlng) => L.circleMarker(latlng, riskPointStyle(feature)),
-        onEachFeature: riskPointPopup
-    }).addTo(riskPointsLayer);
+    map.eachLayer(layer => {
+        if (layer instanceof L.MarkerClusterGroup) {
+            map.removeLayer(layer);
+        }
+    });
 
+    const markers = L.markerClusterGroup({
+        chunkedLoading: true,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+        animateAddingMarkers: true
+    });
+
+    L.geoJSON(filteredData, {
+        pointToLayer: (feature, latlng) => {
+            const marker = L.circleMarker(latlng, riskPointStyle(feature));
+            marker.bindPopup(riskPointPopup(feature));
+            return marker;
+        }
+    }).addTo(markers);
+
+    map.addLayer(markers);
     updateDataInsights(filteredData);
 }
 
@@ -226,9 +255,13 @@ function initializeLayerControls() {
 
     riskPointsToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
-            map.addLayer(riskPointsLayer);
+            applyFilters(); // This will re-add the clustered risk points
         } else {
-            map.removeLayer(riskPointsLayer);
+            map.eachLayer(layer => {
+                if (layer instanceof L.MarkerClusterGroup) {
+                    map.removeLayer(layer);
+                }
+            });
         }
     });
 }
