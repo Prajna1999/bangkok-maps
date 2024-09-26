@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangkok Risk Points Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="sidebar">
+        <div id="filters">
+            <h3>Filters</h3>
+            <select id="status-filter">
+                <option value="">All Statuses</option>
+            </select>
+            <select id="district-filter">
+                <option value="">All Districts</option>
+            </select>
+        </div>
+        <div id="data-insights">
+            <h3>Data Insights</h3>
+            <div id="total-points"></div>
+            <div id="status-breakdown"></div>
+            <div id="top-districts"></div>
+        </div>
+        <div id="layer-controls">
+            <h3>Layer Controls</h3>
+            <div>
+                <input type="checkbox" id="subdistricts-toggle" checked>
+                <label for="subdistricts-toggle">Subdistricts</label>
+            </div>
+            <div>
+                <input type="checkbox" id="risk-points-toggle" checked>
+                <label for="risk-points-toggle">Risk Points</label>
+            </div>
+        </div>
+    </div>
+    <div id="data-insights">
+        <h3>Data Insights</h3>
+        <div id="total-points"></div>
+        <div id="status-breakdown"></div>
+        <div id="top-districts"></div>
+        <div id="top-subdistricts"></div>
+    </div>
+    <div id="layer-controls">
+        <h3>Layer Controls</h3>
+        <div>
+            <input type="checkbox" id="subdistricts-toggle" checked>
+            <label for="subdistricts-toggle">Subdistricts</label>
+        </div>
+        <div>
+            <input type="checkbox" id="risk-points-toggle" checked>
+            <label for="risk-points-toggle">Risk Points</label>
+        </div>
+    </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

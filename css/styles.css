@@ -1,0 +1,67 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+}
+
+#map {
+    height: 100%;
+    width: 75%;
+    float: left;
+}
+
+#sidebar {
+    width: 25%;
+    height: 100%;
+    float: right;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    background-color: #f8f8f8;
+    border-left: 1px solid #ddd;
+}
+
+#filters,
+#data-insights,
+#layer-controls {
+    margin-bottom: 20px;
+}
+
+h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+select {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#data-insights div {
+    margin-bottom: 15px;
+}
+
+#data-insights ul {
+    padding-left: 20px;
+    margin: 5px 0;
+}
+
+.leaflet-control-layers {
+    display: none;
+}
+
+.leaflet-control-custom {
+    background-color: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
