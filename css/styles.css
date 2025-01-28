@@ -1,53 +1,190 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
 body,
 html {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
+    overflow: hidden;
+    background-color: #f0f0f0;
+}
+
+#map-container {
+    height: 100%;
+    width: 75%;
+    float: left;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 1s ease-out;
 }
 
 #map {
     height: 100%;
-    width: 75%;
-    float: left;
+    width: 100%;
 }
 
 #sidebar {
     width: 25%;
     height: 100%;
-    float: right;
+    position: fixed;
+    top: 0;
+    right: 0;
     padding: 20px;
     box-sizing: border-box;
     overflow-y: auto;
-    background-color: #f8f8f8;
+    background-color: #ffffff;
     border-left: 1px solid #ddd;
+    transition: transform 0.3s ease-out;
+    z-index: 1000;
+}
+
+#sidebar.hidden {
+    transform: translateX(100%);
+}
+
+#map-container {
+    height: 100%;
+    width: 75%;
+    float: left;
+    transition: width 0.3s ease-out;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        width: 100%;
+        height: 40%;
+        top: 60%;
+        transform: translateY(0);
+    }
+
+    #sidebar.hidden {
+        transform: translateY(100%);
+    }
+
+    #map-container {
+        width: 100%;
+        height: 60%;
+    }
 }
 
 #filters,
 #data-insights,
+#chart-container,
 #layer-controls {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    animation: fadeIn 1s ease-out;
 }
 
 h3 {
     margin-top: 0;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #4CAF50;
     padding-bottom: 10px;
+    color: #333;
+    font-size: 1.2em;
+}
+
+.select-wrapper {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.select-wrapper::after {
+    content: '\25BC';
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #4CAF50;
 }
 
 select {
     width: 100%;
-    padding: 5px;
-    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    appearance: none;
+    font-size: 14px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
 }
 
 #data-insights div {
     margin-bottom: 15px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+#data-insights div:hover {
+    background-color: #f0f0f0;
 }
 
 #data-insights ul {
     padding-left: 20px;
     margin: 5px 0;
+    list-style-type: none;
+}
+
+#data-insights li {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+#chart-container {
+    width: 100%;
+    height: 300px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#layer-controls div {
+    margin-bottom: 10px;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
 }
 
 .leaflet-control-layers {
@@ -62,6 +199,68 @@ select {
     cursor: pointer;
 }
 
-.hidden {
-    display: none;
+.info {
+    padding: 10px;
+    font: 14px/16px Arial, sans-serif;
+    background: white;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    transition: all 0.3s;
+}
+
+.info:hover {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+
+.legend {
+    line-height: 18px;
+    color: #555;
+}
+
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+
+.download-btn {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    animation: pulse 2s infinite;
+}
+
+.download-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    #map-container {
+        width: 100%;
+        height: 60%;
+    }
+
+    #sidebar {
+        width: 100%;
+        height: 40%;
+        float: none;
+        overflow-y: scroll;
+    }
 }
