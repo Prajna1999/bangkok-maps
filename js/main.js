@@ -9,6 +9,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Global variables to store layers and data
 let subDistrictsLayer, clusterLayer;
 let subDistrictsData, riskPointsData;
+let mainCanalLayer;
 
 // Function to load GeoJSON data
 async function loadGeoJSON(url) {
@@ -36,6 +37,33 @@ function subDistrictStyle(feature) {
         fillOpacity: 0.7
     };
 }
+
+// Get random colors for canals
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+const canalColors = {}; // Cache for consistent colors per canal
+
+function canalStyle(feature) {
+    // Generate and cache a unique color for each canal name
+    const canalName = feature.properties.NAME;
+    if (!canalColors[canalName]) {
+        canalColors[canalName] = getRandomColor();
+    }
+
+    return {
+        color: canalColors[canalName],
+        weight: 3,
+        opacity: 0.8
+    };
+}
+
 
 function riskPointStyle(feature) {
     return {
@@ -69,17 +97,18 @@ function subDistrictPopup(feature, layer) {
     }
 }
 
-// function riskPointPopup(feature, layer) {
-//     if (feature.properties) {
-//         layer.bindPopup(`
-//             <strong>${feature.properties.roadcl_name}</strong><br>
-//             Problem: ${feature.properties.problems}<br>
-//             District: ${feature.properties.district}<br>
-//             Status: ${feature.properties.status_detail}<br>
-//             Project: ${feature.properties.project_name}
-//         `);
-//     }
-// }
+function canalPopup(feature, layer) {
+    if (feature.properties) {
+        layer.bindPopup(`
+            <strong>${feature.properties.NAME}</strong><br>
+            Shape: ${feature.properties.SHAPE_1}<br>
+            Type: ${feature.properties.BR_TYPE}<br>
+            Width: ${feature.properties.WIDTH_UP} m<br>
+            Height: ${feature.properties.HEIGHT_UP} m<br>
+            Material: ${feature.properties.MATERIAL}
+        `);
+    }
+}
 
 // Load and process data
 async function loadData() {
@@ -88,12 +117,15 @@ async function loadData() {
 
         const subDistrictsResponse = await fetch('data/geojson/subdistricts_bma.geojson');
         const riskPointsResponse = await fetch('data/geojson/risk_point_one.geojson');
+        const mainCanalResponse = await fetch('data/geojson/main_canal.geojson');
 
         console.log('Subdistricts response status:', subDistrictsResponse.status);
         console.log('Risk points response status:', riskPointsResponse.status);
+        console.log(`Main canals response status: ${mainCanalResponse.status}`);
 
         subDistrictsData = await subDistrictsResponse.json();
         riskPointsData = await riskPointsResponse.json();
+        mainCanalData = await mainCanalResponse.json();
 
         console.log('Subdistricts data:', subDistrictsData);
         console.log('Risk points data:', riskPointsData);
@@ -138,7 +170,14 @@ function initializeLayers() {
             onEachFeature: onEachFeature
         }).addTo(map);
     }
-
+    if (mainCanalData && mainCanalData.features) {
+        mainCanalLayer = L.geoJSON(mainCanalData, {
+            style: canalStyle,
+            onEachFeature: (feature, layer) => {
+                canalPopup(feature, layer);
+            }
+        }).addTo(map);
+    }
     clusterLayer = L.markerClusterGroup({
         chunkedLoading: true,
         spiderfyOnMaxZoom: false,
@@ -170,11 +209,12 @@ function initializeLayers() {
 function riskPointPopup(feature) {
     if (feature && feature.properties) {
         return `
-            <strong>${feature.properties.roadcl_name || 'N/A'}</strong><br>
-            Problem: ${feature.properties.problems || 'N/A'}<br>
-            District: ${feature.properties.district || 'N/A'}<br>
-            Status: ${feature.properties.status_detail || 'N/A'}<br>
-            Project: ${feature.properties.project_name || 'N/A'}
+            <h3>${feature.properties.roadcl_name || 'N/A'}</h3><br>
+           <b> Problem: ${feature.properties.problems || 'N/A'} </b><br>
+            <b>District: ${feature.properties.district || 'N/A'}</b><br>
+            <b>Status: ${feature.properties.status_detail || 'N/A'}</b><br>
+            <b>Project: ${feature.properties.project_name || 'N/A'}</b><br>
+            <b>Remarks: ${feature.properties.remark || 'N/A'}</b> <br>
         `;
     }
     return null;
@@ -291,7 +331,7 @@ function updateTopList(elementId, title, counts, total, limit) {
 function initializeLayerControls() {
     const subdistrictsToggle = document.getElementById('subdistricts-toggle');
     const riskPointsToggle = document.getElementById('risk-points-toggle');
-
+    const mainCanalsToggle = document.getElementById('main-canals-toggle');
     subdistrictsToggle.addEventListener('change', (e) => {
         if (e.target.checked) {
             map.addLayer(subDistrictsLayer);
@@ -305,6 +345,14 @@ function initializeLayerControls() {
             map.addLayer(clusterLayer);
         } else {
             map.removeLayer(clusterLayer);
+        }
+    });
+
+    mainCanalsToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            map.addLayer(mainCanalLayer);
+        } else {
+            map.removeLayer(mainCanalLayer);
         }
     });
 }
@@ -355,6 +403,26 @@ function addLegend() {
 
     legend.addTo(map);
 }
+
+function addCanalLegend() {
+    const legend = L.control({ position: 'bottomright' });
+
+    legend.onAdd = function (map) {
+        const div = L.DomUtil.create('div', 'info legend canals');
+        div.innerHTML = '<h4>Main Canals</h4>';
+
+        // Add legend entries for each canal
+        Object.entries(canalColors).forEach(([name, color]) => {
+            div.innerHTML +=
+                `<i style="background: ${color}"></i> ${name}<br>`;
+        });
+
+        return div;
+    };
+
+    legend.addTo(map);
+}
+
 
 // Animate data insights update
 function animateDataInsights() {
@@ -410,7 +478,14 @@ info.onAdd = function (map) {
 
 info.update = function (props) {
     this._div.innerHTML = '<h4>Bangkok Subdistrict Info</h4>' + (props ?
-        '<b>' + props.subdistrict_t + '</b><br />' + props.riskPointCount + ' risk points'
+        '<b>' + props.subdistrict_t + '</b><br />'
+        + '<b> Abbreviation: ' + props.abbreviation + '</b><br />'
+        + props.riskPointCount + ' risk points' + '<br />'
+        + '<b>District: ' + props.district_t + '</b><br />'
+        + '<b>Area: ' + props.shape_area + '</b><br />'
+        + '<b>Owner: ' + props.owner + '</b><br />'
+        + '<b>Province: ' + props.province_t + '</b><br />'
+        + '<b>Zone: ' + props.zone + '</b><br />'
         : 'Hover over a subdistrict');
 };
 
@@ -460,6 +535,7 @@ function updateChart(data) {
 async function init() {
     await loadData();
     addLegend();
+    addCanalLegend();
     addChart();
 }
 
